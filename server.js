@@ -7,18 +7,22 @@ const app = express();
 const upload = multer({ dest: "uploads/" });
 const PORT = process.env.PORT || 3000;
 
-// Serve static frontend
+// Serve frontend
 app.use(express.static(path.join(__dirname, "public")));
 
 app.get("/", (req, res) => {
   res.sendFile(path.join(__dirname, "public/index.html"));
 });
 
-// Utility: safely extract usernames + timestamps
-function extractUsers(json, key) {
-  if (!json[key] || !Array.isArray(json[key])) return [];
-  return json[key]
+// Robust function to extract usernames + timestamps
+function extractUsers(json) {
+  // If top-level array, use it; otherwise check for relationships_following / relationships_followers
+  const list = Array.isArray(json) ? json : (json.relationships_following || json.relationships_followers || []);
+  if (!Array.isArray(list)) return [];
+
+  return list
     .map(entry => {
+      // Take first string_list_data item safely
       const data = entry.string_list_data?.[0];
       if (!data || !data.value) return null;
       return {
@@ -41,8 +45,8 @@ app.post(
       const followersRaw = JSON.parse(fs.readFileSync(req.files.followers[0].path, "utf8"));
       const followingRaw = JSON.parse(fs.readFileSync(req.files.following[0].path, "utf8"));
 
-      const followers = extractUsers(followersRaw, "relationships_followers");
-      const following = extractUsers(followingRaw, "relationships_following");
+      const followers = extractUsers(followersRaw);
+      const following = extractUsers(followingRaw);
 
       // Compare following vs followers
       let notFollowingBack = following.filter(f =>
@@ -66,7 +70,7 @@ app.post(
         notFollowingBack
       });
 
-      // Cleanup temp files
+      // Cleanup temp uploaded files
       fs.unlinkSync(req.files.followers[0].path);
       fs.unlinkSync(req.files.following[0].path);
 
