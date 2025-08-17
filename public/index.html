@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Instagram Follower Checker</title>
+<style>
+  body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    max-width: 800px;
+    margin: 50px auto;
+    padding: 20px;
+    background-color: #f9f9f9;
+  }
+  h1 { text-align: center; color: #333; }
+  form, #results { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 0 10px rgba(0,0,0,0.1); margin-bottom: 20px; }
+  input[type="file"], input[type="text"], select {
+    display: block;
+    margin: 10px 0;
+    width: 100%;
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+    box-sizing: border-box;
+  }
+  button {
+    padding: 10px 20px;
+    cursor: pointer;
+    border-radius: 4px;
+    border: none;
+    background-color: #0077ff;
+    color: white;
+    margin-top: 10px;
+  }
+  button:hover { background-color: #005ecc; }
+  #controls { display: flex; gap: 10px; margin-top: 10px; flex-wrap: wrap; }
+  #controls input, #controls select, #controls button { flex: 1; min-width: 150px; }
+  ul { list-style: none; padding-left: 0; max-height: 400px; overflow-y: auto; margin-top: 10px; }
+  li { margin: 5px 0; padding: 5px 10px; border-bottom: 1px solid #eee; border-radius: 4px; background: #f1f1f1; }
+  a { text-decoration: none; color: #0077ff; }
+  a:hover { text-decoration: underline; }
+  #total { font-weight: bold; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<h1>Instagram Follower Checker</h1>
+
+<form id="uploadForm">
+  <label>Upload your followers JSON:</label>
+  <input type="file" name="followers" accept=".json" required>
+
+  <label>Upload your following JSON:</label>
+  <input type="file" name="following" accept=".json" required>
+
+  <button type="submit">Check</button>
+</form>
+
+<div id="results" style="display:none;">
+  <p id="total"></p>
+
+  <div id="controls">
+    <input type="text" id="search" placeholder="Search usernames...">
+    <select id="sort">
+      <option value="asc">Alphabetical A → Z</option>
+      <option value="desc">Alphabetical Z → A</option>
+      <option value="earliest">Followed: Earliest → Latest</option>
+      <option value="latest">Followed: Latest → Earliest</option>
+    </select>
+    <button id="copy">Copy List</button>
+  </div>
+
+  <ul id="notFollowingBack"></ul>
+</div>
+
+<script>
+const form = document.getElementById("uploadForm");
+const totalEl = document.getElementById("total");
+const listEl = document.getElementById("notFollowingBack");
+const searchEl = document.getElementById("search");
+const sortEl = document.getElementById("sort");
+const copyBtn = document.getElementById("copy");
+const resultsDiv = document.getElementById("results");
+
+let usernames = [];  // { value: username, timestamp: number }
+
+// Handle file upload
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+  const formData = new FormData(form);
+
+  try {
+    const res = await fetch("/upload", { method: "POST", body: formData });
+    if (!res.ok) throw new Error("Upload failed");
+    const data = await res.json();
+
+    // Store usernames with timestamps
+    usernames = data.notFollowingBack.map(u => ({ value: u.value, timestamp: u.timestamp }));
+
+    totalEl.textContent = `Total not following back: ${usernames.length}`;
+    resultsDiv.style.display = "block";
+    renderList(usernames);
+
+  } catch (err) {
+    alert("Error: " + err.message);
+  }
+});
+
+// Render list function
+function renderList(list) {
+  const filtered = list.filter(u => u.value.toLowerCase().includes(searchEl.value.toLowerCase()));
+  listEl.innerHTML = "";
+
+  filtered.forEach(u => {
+    const li = document.createElement("li");
+    const a = document.createElement("a");
+    a.href = `https://www.instagram.com/${u.value}`;
+    a.target = "_blank";
+    a.textContent = u.value;
+    li.appendChild(a);
+    listEl.appendChild(li);
+  });
+}
+
+// Search filter
+searchEl.addEventListener("input", () => {
+  renderList(usernames);
+});
+
+// Sort
+sortEl.addEventListener("change", () => {
+  let sorted;
+  switch(sortEl.value) {
+    case "asc":
+      sorted = [...usernames].sort((a,b) => a.value.localeCompare(b.value));
+      break;
+    case "desc":
+      sorted = [...usernames].sort((a,b) => b.value.localeCompare(a.value));
+      break;
+    case "earliest":
+      sorted = [...usernames].sort((a,b) => a.timestamp - b.timestamp);
+      break;
+    case "latest":
+      sorted = [...usernames].sort((a,b) => b.timestamp - a.timestamp);
+      break;
+  }
+  renderList(sorted);
+});
+
+// Copy to clipboard
+copyBtn.addEventListener("click", () => {
+  if (usernames.length === 0) return;
+  navigator.clipboard.writeText(usernames.map(u => u.value).join("\n"));
+  alert("Copied " + usernames.length + " usernames to clipboard!");
+});
+</script>
+
+</body>
+</html>
