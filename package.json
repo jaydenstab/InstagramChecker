@@ -13,6 +13,15 @@
   "type": "commonjs",
   "dependencies": {
     "express": "^5.1.0",
-    "multer": "^2.0.2"
-  }
+    "multer": "^2.0.2",
+    "node-fetch": "^3.3.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jaydenstab/InstagramChecker.git"
+  },
+  "bugs": {
+    "url": "https://github.com/jaydenstab/InstagramChecker/issues"
+  },
+  "homepage": "https://github.com/jaydenstab/InstagramChecker#readme"
 }
