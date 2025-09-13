@@ -1,0 +1,19 @@
+.sort-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.sort-selector label {
+  font-weight: 600;
+  color: #555;
+}
+
+.sort-selector select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 14px;
+  box-sizing: border-box;
+}
