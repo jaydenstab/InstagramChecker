@@ -1,0 +1,13 @@
+{
+  "files": {
+    "main.css": "/InstagramChecker/static/css/main.a35ffede.css",
+    "main.js": "/InstagramChecker/static/js/main.6a774829.js",
+    "index.html": "/InstagramChecker/index.html",
+    "main.a35ffede.css.map": "/InstagramChecker/static/css/main.a35ffede.css.map",
+    "main.6a774829.js.map": "/InstagramChecker/static/js/main.6a774829.js.map"
+  },
+  "entrypoints": [
+    "static/css/main.a35ffede.css",
+    "static/js/main.6a774829.js"
+  ]
+}
